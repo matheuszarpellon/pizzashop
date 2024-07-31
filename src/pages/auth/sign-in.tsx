@@ -25,7 +25,6 @@ export function SignIn() {
 
   const { mutateAsync: authenticate } = useMutation({
     mutationFn: signIn,
-
   });
 
   const handleSignIn = async (data: SignInForm) => {

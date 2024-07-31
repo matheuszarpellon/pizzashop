@@ -14,7 +14,7 @@ import { queryClient } from "@/lib/react-query";
 
 const storeProfileSchema = z.object({
   name: z.string().min(1),
-  description: z.string(),
+  description: z.string().nullable(),
 })
 
 type StoreProfileSchema = z.infer<typeof storeProfileSchema>
@@ -34,10 +34,8 @@ export function StoreProfileDialog() {
     }
   })
 
-  const { mutateAsync: updateProfileFn } = useMutation({
-    mutationFn: UpdateProfile,
-    onSuccess: (_, {name, description}) => {
-      const cached = queryClient.getQueryData<GetManagedRestaurantResponse>(['managed-restaurant'])
+  function updateManagedRestaurantCache({name, description}: StoreProfileSchema) {
+    const cached = queryClient.getQueryData<GetManagedRestaurantResponse>(['managed-restaurant'])
 
       if (cached) {
         queryClient.setQueryData<GetManagedRestaurantResponse>(['managed-restaurant'], {
@@ -46,8 +44,25 @@ export function StoreProfileDialog() {
           description,
         })
       }
+
+      return { cached }
+    }
+  
+
+  const { mutateAsync: updateProfileFn } = useMutation({
+    mutationFn: UpdateProfile,
+    onMutate: ({name, description}) => {
+      const { cached } = updateManagedRestaurantCache({name, description})
+
+      return { previousProfile: cached }
+    },
+    onError(_, __, context) {
+      if (context?.previousProfile) {
+        updateManagedRestaurantCache(context.previousProfile)
+      }
     }
   })
+  
 
   async function handleUpdateProfile(data: StoreProfileSchema) {
     try {

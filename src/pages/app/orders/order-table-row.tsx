@@ -1,35 +1,40 @@
-import { OrderStatus } from "@/components/order-status";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { TableCell, TableRow } from "@/components/ui/table";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { ArrowRight, Search, X } from "lucide-react";
-import { OrderDetails } from "./order-details";
+import { formatDistanceToNow } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import { ArrowRight, Search, X } from 'lucide-react'
+import { useState } from 'react'
 
-export interface OrderTableRowProps {
+import { OrderStatus } from '@/components/order-status'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogTrigger } from '@/components/ui/dialog'
+import { TableCell, TableRow } from '@/components/ui/table'
+
+import { OrderDetails } from './order-details'
+
+interface OrderTableRowProps {
   order: {
-    orderId: number;
-    createdAt: Date;
-    status: 'pending' | 'canceled' | 'processing' | 'delivering' | 'delivered';
-    customerName: string;
-    total: number;
+    orderId: string
+    createdAt: string
+    status: 'pending' | 'canceled' | 'processing' | 'delivering' | 'delivered'
+    customerName: string
+    total: number
   }
 }
 
 export function OrderTableRow({ order }: OrderTableRowProps) {
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+
   return (
     <TableRow>
       <TableCell>
-        <Dialog>
+        <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" size="xs">
               <Search className="h-3 w-3" />
-              <span className="sr-only">Detalhes do Pedido</span>
+              <span className="sr-only">Detalhes do pedido</span>
             </Button>
           </DialogTrigger>
 
-          <OrderDetails />
+          <OrderDetails open={isDetailsOpen} orderId={order.orderId} />
         </Dialog>
       </TableCell>
       <TableCell className="font-mono text-xs font-medium">
@@ -41,30 +46,28 @@ export function OrderTableRow({ order }: OrderTableRowProps) {
           addSuffix: true,
         })}
       </TableCell>
-      <TableCell className="flex items-center gap-2">
+      <TableCell>
         <OrderStatus status={order.status} />
       </TableCell>
+      <TableCell className="font-medium">{order.customerName}</TableCell>
       <TableCell className="font-medium">
-        {order.customerName}
-      </TableCell>
-      <TableCell className="font-medium">
-        {order.total.toLocaleString('pt-BR', {
+        {(order.total / 100).toLocaleString('pt-BR', {
           style: 'currency',
           currency: 'BRL',
         })}
       </TableCell>
       <TableCell>
         <Button variant="outline" size="xs">
-          <ArrowRight className="h-3 w-3 mr-2" />
+          <ArrowRight className="mr-2 h-3 w-3" />
           Aprovar
         </Button>
       </TableCell>
       <TableCell>
         <Button variant="ghost" size="xs">
-          <X className="h-3 w-3 mr-2" />
+          <X className="mr-2 h-3 w-3" />
           Cancelar
         </Button>
       </TableCell>
     </TableRow>
-  );
+  )
 }
